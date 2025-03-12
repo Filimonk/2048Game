@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 482c8d31bf553554784fc45586981e4b
+guid: 4eba758c069dea149ad7ef77d4916bf4
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -4107189145980917224
-    second: EmptyCell 01_0
+      213: 6946673507623500245
+    second: SlotForCell_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,7 +100,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: EmptyCell 01_0
+      name: SlotForCell_0
       rect:
         serializedVersion: 2
         x: 0
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 81aa7788b355007c0800000000000000
-      internalID: -4107189145980917224
+      spriteID: 5d9f38800ca876060800000000000000
+      internalID: 6946673507623500245
       vertices: []
       indices: 
       edges: []
