@@ -3,7 +3,8 @@
 [Oo]bj/
 [Bb]uild/
 [Bb]uilds/
-[Ll]ogs/
+Logs/
+UserSettings/
 
 .idea/
 .vscode/
