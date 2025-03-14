@@ -5,6 +5,7 @@ namespace _Scripts
 {
     public class Cell
     {
+        public event Action OnDestroy;
         public event Action<int> OnValueChanged;
         public event Action<Vector3> OnPositionChanged;
 
@@ -15,6 +16,11 @@ namespace _Scripts
         {
             this.value = value;
             this.coordinates = coordinates;
+        }
+
+        public void Destroy()
+        {
+            OnDestroy?.Invoke();
         }
 
         public int GetValue()

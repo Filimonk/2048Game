@@ -5,6 +5,7 @@ namespace _Scripts
 {
     public class CellView : MonoBehaviour
     {
+        private Cell cell;
         [SerializeField] private TextMeshProUGUI numberOfPoints;
 
         private int PowInt(int n, int a)
@@ -27,17 +28,31 @@ namespace _Scripts
     
         public void Init(Cell cell)
         {
+            this.cell = cell;
+            
             numberOfPoints.text = PowInt(cell.GetValue(), 2).ToString();
             transform.position = cell.GetCoordinates();
-        
+
+            cell.OnDestroy += CellViewDestroy;
             cell.OnValueChanged += UpdateValue;
             cell.OnPositionChanged += UpdatePosition;
-            // добавить отписку при удалении ячейки
+        }
+        
+        private void CellViewDestroy()
+        {
+            Destroy(gameObject);
+        }
+        
+        private void OnDestroy()
+        {
+            cell.OnDestroy -= CellViewDestroy;
+            cell.OnValueChanged -= UpdateValue;
+            cell.OnPositionChanged -= UpdatePosition;
         }
 
         private void UpdateValue(int value)
         {
-            numberOfPoints.text = value.ToString();
+            numberOfPoints.text = PowInt(value, 2).ToString();
             // заменить цвет
         }
 
