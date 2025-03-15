@@ -90,6 +90,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   numberOfPoints: {fileID: 6200216955489047527}
+  startColor: {r: 0.91950536, g: 1, b: 0.6745098, a: 1}
+  endColor: {r: 0.8862745, g: 0.20784314, b: 0.043137256, a: 1}
 --- !u!1 &4928014306566619814
 GameObject:
   m_ObjectHideFlags: 0
@@ -185,9 +187,9 @@ MonoBehaviour:
   m_fontSize: 80
   m_fontSizeBase: 80
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_fontSizeMax: 80
   m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512

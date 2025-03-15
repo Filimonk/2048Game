@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace _Scripts
 {
@@ -7,6 +8,15 @@ namespace _Scripts
     {
         private Cell cell;
         [SerializeField] private TextMeshProUGUI numberOfPoints;
+        
+        private Image backgroundImage;
+        [SerializeField] private Color startColor;
+        [SerializeField] private Color endColor;
+
+        private void Awake()
+        {
+            backgroundImage = GetComponent<Image>();
+        }
 
         private int PowInt(int n, int a)
         {
@@ -31,6 +41,8 @@ namespace _Scripts
             this.cell = cell;
             
             numberOfPoints.text = PowInt(cell.GetValue(), 2).ToString();
+            UpdateColor(cell.GetValue());
+
             transform.position = cell.GetCoordinates();
 
             cell.OnDestroy += CellViewDestroy;
@@ -49,11 +61,20 @@ namespace _Scripts
             cell.OnValueChanged -= UpdateValue;
             cell.OnPositionChanged -= UpdatePosition;
         }
+        
+        private void UpdateColor(int value)
+        {
+            int maxValue = 10;
+            float t = (float) (value - 1) / maxValue;
+            Color newColor = Color.Lerp(startColor, endColor, t);
+
+            backgroundImage.color = newColor;
+        }
 
         private void UpdateValue(int value)
         {
             numberOfPoints.text = PowInt(value, 2).ToString();
-            // заменить цвет
+            UpdateColor(value);
         }
 
         private void UpdatePosition(Vector3 coordinates)

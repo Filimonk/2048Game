@@ -22,7 +22,7 @@ namespace _Scripts
         private List<GameObject> slotsForCells = new List<GameObject>();
         private List<Cell?> field = new List<Cell?>();
         
-        private List<Cell> cells = new List<Cell>();
+        List<bool> availableDirections = new List<bool>();
 
         public void Awake()
         {
@@ -35,6 +35,51 @@ namespace _Scripts
                 slotsForCells.Add(newSlotForCell);
             
                 field.Add(null);
+            }
+
+            for (int i = 0; i < 4; ++i)
+            {
+                availableDirections.Add(true);
+            }
+        }
+
+        private void RecalculateAvailableDirections()
+        {
+            for (int i = 0; i < 4; ++i)
+            {
+                availableDirections[i] = false;
+            }
+            
+            for (int x = 0; x < WIDTH; ++x)
+            {
+                for (int y = 0; y < HEIGHT; ++y)
+                {
+                    if (field[y * WIDTH + x] == null)
+                    {
+                        continue;
+                    }
+                        
+                    foreach (int offset in new List<int> {-1, 1})
+                    {
+                        if (y + offset >= 0 && y + offset < HEIGHT)
+                        {
+                            if (field[(y + offset) * WIDTH + x] == null ||
+                                field[(y + offset) * WIDTH + x]!.GetValue() == field[y * WIDTH + x]!.GetValue())
+                            {
+                                availableDirections[(int) (Direction) (1 + offset)] = true; // индексация в соответствии с enum Direction
+                            }
+                        }
+                        
+                        if (x + offset >= 0 && x + offset < WIDTH)
+                        {
+                            if (field[y * WIDTH + (x + offset)] == null ||
+                                field[y * WIDTH + (x + offset)]!.GetValue() == field[y * WIDTH + x]!.GetValue())
+                            {
+                                availableDirections[(int) (Direction) ((4 + offset) % 4)] = true; // индексация в соответствии с enum Direction
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -82,10 +127,11 @@ namespace _Scripts
 
             Cell newCell = new Cell(value, GetSlotCoordinates(emptySlotPosition.Value));
             field[emptySlotPosition.Value.y * WIDTH + emptySlotPosition.Value.x] = newCell;
-            cells.Add(newCell);
         
             CellView view = Instantiate(cellViewPrefab, cellsPanelTransform);
             view.Init(newCell);
+
+            RecalculateAvailableDirections();
         }
 
         private void MoveCellsUp(List<Cell?> rotatedField, int width, int height)
@@ -174,11 +220,41 @@ namespace _Scripts
 
             for (int i = 0; i < WIDTH * HEIGHT; ++i)
             {
-                if (field[i] != null)
+                field[i]?.SetCoordinates(GetSlotCoordinates(i % WIDTH, i / WIDTH));
+            }
+
+            RecalculateAvailableDirections();
+        }
+
+        public void RestartField()
+        {
+            for (int i = 0; i < WIDTH * HEIGHT; ++i)
+            {
+                field[i]?.Destroy();
+                field[i] = null;
+            }
+
+            RecalculateAvailableDirections();
+        }
+
+        public bool CheckAvailabilityOfDirection(Direction direction)
+        {
+            return availableDirections[(int) direction];
+        }
+
+        public bool CheckGameOver()
+        {
+            bool result = true;
+
+            for (int i = 0; i < availableDirections.Count; ++i)
+            {
+                if (availableDirections[i])
                 {
-                    field[i]!.SetCoordinates(GetSlotCoordinates(i % WIDTH, i / WIDTH));
+                    result = false;
                 }
             }
+
+            return result;
         }
     }
 }
