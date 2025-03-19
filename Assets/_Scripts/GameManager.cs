@@ -7,7 +7,8 @@ namespace _Scripts
 {
     public class GameManager : MonoBehaviour
     {
-        [SerializeField] private GameField gameField;
+        [SerializeField] private GameField  gameField;
+        [SerializeField] private ScoreField scoreField;
 
         public void Start()
         {
@@ -15,6 +16,8 @@ namespace _Scripts
             
             gameField.CreateCell();
             gameField.CreateCell();
+            
+            scoreField.UpdateValue(gameField.GetScore());
         }
 
         private void RestartGame()
@@ -23,13 +26,13 @@ namespace _Scripts
             Start();
         }
 
-        private void HandleStepAndLog(GameField.Direction direction, string nameKey)
+        private bool HandleStepAndLog(GameField.Direction direction, string nameKey)
         {
             if (gameField.CheckAvailabilityOfDirection(direction) == false)
             {
                 Debug.Log("Была нажата кнопка: \"" + nameKey + "\", направление не доступно, движение клеток не произведено! | " + 
                           "Время: " + Time.time);
-                return;
+                return false;
             }
             
             gameField.MoveCells(direction);
@@ -38,14 +41,10 @@ namespace _Scripts
             Debug.Log("Была нажата кнопка: \"" + nameKey + "\", движение клеток произведено. | " + 
                       "Время: " + Time.time);
 
-            if (gameField.CheckGameOver())
-            {
-                Debug.Log("Игра окончена! | Время: " + Time.time);
-                RestartGame();
-            }
+            return true;
         }
 
-        private void ProcessKey(KeyCode key)
+        private bool ProcessKey(KeyCode key)
         {
             string nameKey = key.ToString();
 
@@ -53,24 +52,20 @@ namespace _Scripts
             {
                 case KeyCode.W:
                 case KeyCode.UpArrow:
-                    HandleStepAndLog(GameField.Direction.Up, nameKey);
-                    break;
+                    return HandleStepAndLog(GameField.Direction.Up, nameKey);
                 case KeyCode.A:
                 case KeyCode.LeftArrow:
-                    HandleStepAndLog(GameField.Direction.Left, nameKey);
-                    break;
+                    return HandleStepAndLog(GameField.Direction.Left, nameKey);
                 case KeyCode.S:
                 case KeyCode.DownArrow:
-                    HandleStepAndLog(GameField.Direction.Down, nameKey);
-                    break;
+                    return HandleStepAndLog(GameField.Direction.Down, nameKey);
                 case KeyCode.D: 
                 case KeyCode.RightArrow:
-                    HandleStepAndLog(GameField.Direction.Right, nameKey);
-                    break;
+                    return HandleStepAndLog(GameField.Direction.Right, nameKey);
                 default:
                     Debug.Log("Была нажата кнопка: \"" + Input.inputString + "\", движение клеток не произведено! | " + 
                               "Время: " + Time.time);
-                    break;
+                    return false;
             }
         }
 
@@ -100,7 +95,18 @@ namespace _Scripts
             }
             else if (keyPressedCount == 1)
             {
-                ProcessKey(keyPressed);
+                bool success = ProcessKey(keyPressed);
+
+                if (success)
+                {
+                    if (gameField.CheckGameOver())
+                    {
+                        Debug.Log("Игра окончена! | Время: " + Time.time);
+                        RestartGame();
+                    }
+
+                    scoreField.UpdateValue(gameField.GetScore());
+                }
             }
         }
     }

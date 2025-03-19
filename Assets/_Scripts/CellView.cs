@@ -17,30 +17,12 @@ namespace _Scripts
         {
             backgroundImage = GetComponent<Image>();
         }
-
-        private int PowInt(int n, int a)
-        {
-            if (n == 0)
-            {
-                return 1;
-            }
-
-            int halfPowerValue = PowInt(n / 2, a);
-            if (n % 2 == 1)
-            {
-                return halfPowerValue * halfPowerValue * a;
-            }
-            else
-            {
-                return halfPowerValue * halfPowerValue;
-            }
-        }
     
         public void Init(Cell cell)
         {
             this.cell = cell;
             
-            numberOfPoints.text = PowInt(cell.GetValue(), 2).ToString();
+            numberOfPoints.text = PowForInt.PowInt(cell.GetValue(), 2).ToString();
             UpdateColor(cell.GetValue());
 
             transform.position = cell.GetCoordinates();
@@ -73,7 +55,7 @@ namespace _Scripts
 
         private void UpdateValue(int value)
         {
-            numberOfPoints.text = PowInt(value, 2).ToString();
+            numberOfPoints.text = PowForInt.PowInt(value, 2).ToString();
             UpdateColor(value);
         }
 

@@ -256,5 +256,20 @@ namespace _Scripts
 
             return result;
         }
+
+        public int GetScore()
+        {
+            int score = 0;
+
+            for (int i = 0; i < WIDTH * HEIGHT; ++i)
+            {
+                if (field[i] != null)
+                {
+                    score += PowForInt.PowInt(field[i]!.GetValue(), 2);
+                }
+            }
+
+            return score;
+        }
     }
 }
