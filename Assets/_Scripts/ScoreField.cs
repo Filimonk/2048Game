@@ -6,17 +6,12 @@ namespace _Scripts
 {
     public class ScoreField : MonoBehaviour
     {
-        [SerializeField] private TextMeshProUGUI value = null!;
+        [SerializeField] private TextMeshProUGUI value;
         private string prefix = "Score\n";
 
-        public void Awake()
+        public void UpdateValue(int score)
         {
-            value.text = prefix + "0";
-        }
-
-        public void UpdateValue(int value)
-        {
-            this.value.text = prefix + value.ToString();
+            value.text = prefix + score.ToString();
         }
     }
 }

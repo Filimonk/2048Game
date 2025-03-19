@@ -1,14 +1,82 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
+using Random = UnityEngine.Random;
 using UnityEngine.InputSystem;
 
 namespace _Scripts
 {
     public class GameManager : MonoBehaviour
     {
+        [Serializable]
+        private class GameData
+        {
+            public int highScore = 0;
+        }
+
+        private string filePath;
+        private BinaryFormatter formatter;
+        private FileStream stream;
+        private GameData gameData;
+        
         [SerializeField] private GameField  gameField;
         [SerializeField] private ScoreField scoreField;
+        [SerializeField] private HighScoreField highScoreField;
+        
+        public void Awake()
+        {
+            filePath = Path.Combine(Application.persistentDataPath, "PersistentDataPath.dat");
+            Debug.Log(Application.persistentDataPath + "PersistentDataPath.dat");
+            formatter = new BinaryFormatter();
+            stream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+
+            LoadGameData(ref gameData);
+        }
+        
+        private void SaveGameData(GameData gameData)
+        {
+            stream.Seek(0, SeekOrigin.Begin);
+            formatter.Serialize(stream, gameData);
+
+            if (Random.value < 0.15f) // иногда выгружаем на диск - профилактика от неожиданного завершения 
+            {
+                stream.Flush();
+            }
+        }
+
+        private void LoadGameData(ref GameData gameData)
+        {
+            if (stream.Length > 0)
+            {
+                stream.Seek(0, SeekOrigin.Begin);
+                gameData = (GameData) formatter.Deserialize(stream);
+            }
+            else
+            {
+                gameData = new GameData();
+            }
+        }
+        
+        private void OnApplicationQuit()
+        {
+            stream.Close();
+        }
+
+        private void UpdateScoreFields()
+        {
+            int currentScore = gameField.GetScore();
+                    
+            scoreField.UpdateValue(currentScore);
+                
+            if (currentScore > gameData.highScore)
+            {
+                gameData.highScore = currentScore;
+                SaveGameData(gameData);
+            }
+            highScoreField.UpdateValue(gameData.highScore);
+        }
 
         public void Start()
         {
@@ -17,7 +85,7 @@ namespace _Scripts
             gameField.CreateCell();
             gameField.CreateCell();
             
-            scoreField.UpdateValue(gameField.GetScore());
+            UpdateScoreFields();
         }
 
         private void RestartGame()
@@ -105,7 +173,7 @@ namespace _Scripts
                         RestartGame();
                     }
 
-                    scoreField.UpdateValue(gameField.GetScore());
+                    UpdateScoreFields();
                 }
             }
         }
