@@ -10,58 +10,67 @@ namespace _Scripts
 {
     public class GameManager : MonoBehaviour
     {
-        [Serializable]
-        private class GameData
-        {
-            public int highScore = 0;
-        }
-
-        private string filePath;
-        private BinaryFormatter formatter;
-        private FileStream stream;
-        private GameData gameData;
-        
         [SerializeField] private GameField  gameField;
         [SerializeField] private ScoreField scoreField;
         [SerializeField] private HighScoreField highScoreField;
+
+        private PersistentGameData persistentGameData;
+        private PersistentGameDataManager persistentGameDataManager;
         
         public void Awake()
         {
-            filePath = Path.Combine(Application.persistentDataPath, "PersistentDataPath.dat");
-            Debug.Log(Application.persistentDataPath + "PersistentDataPath.dat");
-            formatter = new BinaryFormatter();
-            stream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-
-            LoadGameData(ref gameData);
-        }
-        
-        private void SaveGameData(GameData gameData)
-        {
-            stream.Seek(0, SeekOrigin.Begin);
-            formatter.Serialize(stream, gameData);
-
-            if (Random.value < 0.15f) // иногда выгружаем на диск - профилактика от неожиданного завершения 
+            persistentGameData = new PersistentGameData();
+            persistentGameDataManager = new PersistentGameDataManager(); // можно подставить аргумент-путь,
+                                                                         // тогда будет читаться другой файл
+            
+            if (persistentGameDataManager.LoadPersistentGameData(ref persistentGameData))
             {
-                stream.Flush();
-            }
-        }
-
-        private void LoadGameData(ref GameData gameData)
-        {
-            if (stream.Length > 0)
-            {
-                stream.Seek(0, SeekOrigin.Begin);
-                gameData = (GameData) formatter.Deserialize(stream);
+                Debug.Log("Persistent game data loaded successfully");
             }
             else
             {
-                gameData = new GameData();
+                Debug.Log("Failed to load persistent game data");
             }
         }
         
         private void OnApplicationQuit()
         {
-            stream.Close();
+            persistentGameDataManager.Close();
+        }
+
+        public void Start()
+        {
+            Canvas.ForceUpdateCanvases();
+            
+            highScoreField.UpdateValue(persistentGameData.GetHighScore());
+
+            if (!persistentGameData.emptyField())
+            {
+                gameField.InitField(persistentGameData.GetFieldData());
+            }
+            else
+            {
+                gameField.CreateCell();
+                gameField.CreateCell();
+            }
+
+            UpdateScoreFields();
+            
+            persistentGameData.UpdateFieldAndHighScore(gameField.GetFieldData(), gameField.GetScore());
+            persistentGameDataManager.SavePersistentGameData(persistentGameData);
+        }
+
+        private void RestartGame()
+        {
+            gameField.RestartField();
+            
+            gameField.CreateCell();
+            gameField.CreateCell();
+            
+            UpdateScoreFields();
+                    
+            persistentGameData.UpdateFieldAndHighScore(gameField.GetFieldData(), gameField.GetScore());
+            persistentGameDataManager.SavePersistentGameData(persistentGameData);
         }
 
         private void UpdateScoreFields()
@@ -69,29 +78,7 @@ namespace _Scripts
             int currentScore = gameField.GetScore();
                     
             scoreField.UpdateValue(currentScore);
-                
-            if (currentScore > gameData.highScore)
-            {
-                gameData.highScore = currentScore;
-                SaveGameData(gameData);
-            }
-            highScoreField.UpdateValue(gameData.highScore);
-        }
-
-        public void Start()
-        {
-            Canvas.ForceUpdateCanvases();
-            
-            gameField.CreateCell();
-            gameField.CreateCell();
-            
-            UpdateScoreFields();
-        }
-
-        private void RestartGame()
-        {
-            gameField.RestartField();
-            Start();
+            highScoreField.UpdateValue(currentScore);
         }
 
         private bool HandleStepAndLog(GameField.Direction direction, string nameKey)
@@ -172,8 +159,13 @@ namespace _Scripts
                         Debug.Log("Игра окончена! | Время: " + Time.time);
                         RestartGame();
                     }
-
-                    UpdateScoreFields();
+                    else
+                    {
+                        UpdateScoreFields();
+                        
+                        persistentGameData.UpdateFieldAndHighScore(gameField.GetFieldData(), gameField.GetScore());
+                        persistentGameDataManager.SavePersistentGameData(persistentGameData);
+                    }
                 }
             }
         }

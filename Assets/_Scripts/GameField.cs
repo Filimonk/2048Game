@@ -1,5 +1,6 @@
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -113,25 +114,34 @@ namespace _Scripts
             return GetSlotCoordinates(position.x, position.y);
         }
 
-        public void CreateCell()
+        public void CreateCell(Vector2Int? position)
         {
-            Vector2Int? emptySlotPosition = GetEmptySlotPosition();
-
-            if (emptySlotPosition == null)
+            if (position == null)
             {
                 Debug.Log("Нет свободных позиций для новой клетки!");
                 return;
             }
 
+            if (field[position.Value.y * WIDTH + position.Value.x] != null)
+            {
+                Debug.Log("Переданная позиция занята!");
+                return;
+            }
+
             int value = Random.value < 0.8f ? 1 : 2;
 
-            Cell newCell = new Cell(value, GetSlotCoordinates(emptySlotPosition.Value));
-            field[emptySlotPosition.Value.y * WIDTH + emptySlotPosition.Value.x] = newCell;
+            Cell newCell = new Cell(value, GetSlotCoordinates(position.Value));
+            field[position.Value.y * WIDTH + position.Value.x] = newCell;
         
             CellView view = Instantiate(cellViewPrefab, cellsPanelTransform);
             view.Init(newCell);
 
             RecalculateAvailableDirections();
+        }
+
+        public void CreateCell()
+        {
+            CreateCell(GetEmptySlotPosition());
         }
 
         private void MoveCellsUp(List<Cell?> rotatedField, int width, int height)
@@ -270,6 +280,31 @@ namespace _Scripts
             }
 
             return score;
+        }
+
+        public List<Tuple<int, Vector2Int>> GetFieldData()
+        {
+            List<Tuple<int, Vector2Int>> cells = new List<Tuple<int, Vector2Int>>();
+            
+            for (int i = 0; i < WIDTH * HEIGHT; ++i)
+            {
+                if (field[i] != null)
+                {
+                    cells.Add(new Tuple<int, Vector2Int>(field[i]!.GetValue(), new Vector2Int(i % WIDTH, i / WIDTH)));
+                }
+            }
+
+            return cells;
+        }
+
+        public void InitField(List<Tuple<int, Vector2Int>> cells)
+        {
+            for (int i = 0; i < cells.Count; ++i)
+            {
+                Vector2Int position = cells[i].Item2;
+                CreateCell(position);
+                field[position.y * WIDTH + position.x]!.SetValue(cells[i].Item1);
+            }
         }
     }
 }
